@@ -91,7 +91,8 @@ fn fragment(
 	room_index_uv += n;
 
 	// get room depth from room atlas alpha else use the Depth paramater
-  var far_frac = textureSample(room_texture, room_sampler, (room_index_uv+0.5)/atlas_rooms).a;
+	let depth_uv = fract((room_index_uv + 0.5) / atlas_rooms);
+  var far_frac = textureSample(room_texture, room_sampler, depth_uv).a;
 	if (far_frac == 1.0) {
 		far_frac = material.depth;
 		if (far_frac >= 1.0 || far_frac < 0.0) {
@@ -123,8 +124,8 @@ fn fragment(
 	var interior_uv = pos.xy * mix(1.0, far_frac, interp);
 	interior_uv = interior_uv * 0.5 + 0.5;
 
-	// sample room atlas texture
-	let uv = (room_index_uv + interior_uv) / atlas_rooms;
+	// sample room atlas textur
+	let uv = fract((room_index_uv + interior_uv) / atlas_rooms);
   let room = textureSample(room_texture, room_sampler, uv).rgb;
   var emit = textureSample(room_texture, room_sampler, uv).rgb * vec3<f32>(1.2);
 	
