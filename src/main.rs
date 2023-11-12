@@ -6,14 +6,23 @@ use bevy::{
 };
 
 fn main() {
-    App::new()
-        .add_plugins((DefaultPlugins, MaterialPlugin::<CustomMaterial>::default()))
-        .add_plugins(bevy_inspector_egui::quick::WorldInspectorPlugin::new())
-        .add_plugins(bevy_panorbit_camera::PanOrbitCameraPlugin)
-        .add_plugins(bevy_spectator::SpectatorPlugin)
-        .register_asset_reflect::<CustomMaterial>()
-        .add_systems(Startup, setup)
-        .run();
+  let mut app = App::new();
+
+  app.add_plugins(DefaultPlugins.set(
+    AssetPlugin {
+        mode: AssetMode::Processed,
+        ..default()
+    }
+  ));
+
+  app.add_plugins(MaterialPlugin::<CustomMaterial>::default())
+    .add_plugins(bevy_inspector_egui::quick::WorldInspectorPlugin::new())
+    .add_plugins(bevy_panorbit_camera::PanOrbitCameraPlugin)
+    .add_plugins(bevy_spectator::SpectatorPlugin)
+    .register_asset_reflect::<CustomMaterial>()
+    .add_systems(Startup, setup);
+
+  app.run();
 }
 
 /// set up a simple 3D scene
@@ -24,8 +33,6 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     let mut mesh = Mesh::from(shape::Plane { size: 1.0, subdivisions: 0 });
-    //let mut mesh = Mesh::from(shape::Cube { size: 1.0 });
-    //let mut mesh = Mesh::from(shape::Box::new(1.0, 1.0, 1.0));
     mesh.generate_tangents().unwrap();
     // wall
     let mut wall = commands.spawn(MaterialMeshBundle {
@@ -33,12 +40,13 @@ fn setup(
         transform: Transform::from_rotation(Quat::from_rotation_x(1.570796)),
         material: materials.add(CustomMaterial {
             params: CustomUniform {
-              atlas_rooms: Vec2::new(1.0, 1.0),
-              rooms: Vec2::new(1.0, 1.0),
+              atlas_rooms: Vec2::new(3.0, 2.0),
+              rooms: Vec2::new(3.0, 3.0),
               depth: 0.5,
               ..default()
             },
-            room_texture: Some(asset_server.load("textures/room_3_E.png")),
+            //room_texture: Some(asset_server.load("textures/room_3_E.png")),
+            room_texture: Some(asset_server.load("textures/rooms_depth.png")),
             //room_texture: Some(asset_server.load("textures/interior_2d.png")),
         }),
         ..default()
