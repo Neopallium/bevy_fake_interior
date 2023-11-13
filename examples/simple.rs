@@ -4,8 +4,7 @@ use bevy::{
   prelude::*,
 };
 
-mod material;
-pub use material::*;
+use bevy_fake_interior::*;
 
 fn main() {
   let mut app = App::new();
