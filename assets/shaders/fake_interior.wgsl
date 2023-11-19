@@ -36,12 +36,12 @@ struct FakeInteriorMaterial {
 
 @group(1) @binding(100) var<uniform> material: FakeInteriorMaterial;
 
-fn room_random(s: f32) -> vec2<f32> {
-  return fract(sin((s + material.room_seed) * vec2<f32>(12.9898,78.233)) * 43758.5453);
+fn random2D(s: f32) -> vec2<f32> {
+  return fract(sin(s * vec2<f32>(12.9898,78.233)) * 43758.5453);
 }
 
-fn light_random(s: vec2<f32>) -> f32 {
-  return fract(sin(dot(s + vec2<f32>(material.light_seed), vec2<f32>(12.9898,78.233))) * 43758.5453123);
+fn random1D(s: f32) -> f32 {
+  return fract(sin(s * 12.9898) * 43758.5453);
 }
 
 @fragment
@@ -55,9 +55,11 @@ fn fragment(
 	// room uvs
 	let room_uv = fract(UV);
 	var room_index_uv = floor(UV);
+	let room_index = (room_index_uv.x + room_index_uv.y * material.rooms.x);
+	let room_seed = room_index * material.room_seed;
 
 	// randomize the rooms
-	let n = floor(room_random(room_index_uv.x + room_index_uv.y * (room_index_uv.x + 1.0)) * atlas_rooms);
+	let n = floor(random2D(room_seed) * atlas_rooms);
 	room_index_uv += n;
 
 	// get room depth from room atlas alpha else use the Depth paramater
@@ -103,7 +105,7 @@ fn fragment(
 	in.uv = fract((room_index_uv + interior_uv) / atlas_rooms);
 	
 	// Randomly turn on room light.
-	var has_light = light_random(floor(UV));
+	var has_light = random1D(room_index * material.light_seed);
 	if has_light >= material.light_threshold {
 		has_light = 0.0;
 	} else {
