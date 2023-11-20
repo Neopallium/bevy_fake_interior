@@ -1,11 +1,13 @@
 //! A shader and a material that uses it.
 
 use bevy::{
-  pbr::{ExtendedMaterial, MaterialExtension},
   prelude::*,
   reflect::{std_traits::ReflectDefault, Reflect, TypeUuid},
   render::{render_asset::*, render_resource::*},
 };
+
+mod extended_material;
+use extended_material::*;
 
 pub type StandardFakeInteriorMaterial = ExtendedMaterial<StandardMaterial, FakeInteriorMaterial>;
 
@@ -74,6 +76,7 @@ pub struct FakeInteriorMaterialPlugin;
 impl Plugin for FakeInteriorMaterialPlugin {
   fn build(&self, app: &mut App) {
     app.add_plugins(MaterialPlugin::<StandardFakeInteriorMaterial>::default())
+      .register_asset_reflect::<StandardFakeInteriorMaterial>()
       .register_asset_reflect::<FakeInteriorMaterial>();
   }
 }
