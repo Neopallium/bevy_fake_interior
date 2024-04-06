@@ -34,7 +34,7 @@ struct FakeInteriorMaterial {
 	light_threshold: f32,
 };
 
-@group(1) @binding(100) var<uniform> material: FakeInteriorMaterial;
+@group(2) @binding(100) var<uniform> material: FakeInteriorMaterial;
 
 fn random2D(s: f32) -> vec2<f32> {
   return fract(sin(s * vec2<f32>(12.9898,78.233)) * 43758.5453);
@@ -65,7 +65,7 @@ fn fragment(
 	// get room depth from room atlas alpha else use the Depth paramater
 	let depth_uv = fract((room_index_uv + 0.5) / atlas_rooms);
   var far_frac = textureSample(base_color_texture, base_color_sampler, depth_uv).a;
-	if (far_frac == 1.0) {
+	if (far_frac >= 0.99) {
 		far_frac = material.depth;
 		if (far_frac >= 1.0 || far_frac < 0.0) {
 			far_frac = 0.5;

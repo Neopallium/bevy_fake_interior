@@ -1,15 +1,15 @@
 use bevy::{
   pbr::{
-    Material, MaterialPipeline, MaterialPipelineKey, MeshPipeline, MeshPipelineKey,
+    MaterialPipeline, MaterialPipelineKey, MeshPipeline, MeshPipelineKey,
     OpaqueRendererMethod,
   },
   prelude::*,
-  reflect::{FromReflect, Reflect, TypeUuid},
+  reflect::Reflect,
   render::{
     mesh::MeshVertexBufferLayout,
     render_asset::*, render_resource::*,
     renderer::RenderDevice,
-    texture::{FallbackImage, Image},
+    texture::FallbackImage,
   },
 };
 
@@ -97,8 +97,7 @@ pub trait MaterialExtension: Asset + AsBindGroup + FromReflect + Clone + Sized {
 /// When used with `StandardMaterial` as the base, all the standard material fields are
 /// present, so the `pbr_fragment` shader functions can be called from the extension shader (see
 /// the `extended_material` example).
-#[derive(Asset, Reflect, Clone, TypeUuid)]
-#[uuid = "39f0022c-8208-11ee-b434-df5f5b2e84b1"]
+#[derive(Asset, Reflect, Clone)]
 pub struct ExtendedMaterial<B: Material + FromReflect, E: MaterialExtension + FromReflect> {
     pub base: B,
     pub extension: E,

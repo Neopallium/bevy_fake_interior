@@ -2,7 +2,7 @@
 
 use bevy::{
   prelude::*,
-  reflect::{std_traits::ReflectDefault, Reflect, TypeUuid},
+  reflect::Reflect,
   render::{render_asset::*, render_resource::*},
 };
 
@@ -11,8 +11,7 @@ use extended_material::*;
 
 pub type StandardFakeInteriorMaterial = ExtendedMaterial<StandardMaterial, FakeInteriorMaterial>;
 
-#[derive(Asset, AsBindGroup, Reflect, Debug, Clone, TypeUuid)]
-#[uuid = "121439ac-81a5-11ee-8d06-d3da473fad43"]
+#[derive(Asset, AsBindGroup, Reflect, Debug, Clone)]
 #[uniform(100, FakeInteriorMaterialUniform)]
 #[reflect(Default, Debug)]
 pub struct FakeInteriorMaterial {

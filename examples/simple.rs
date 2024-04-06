@@ -2,6 +2,7 @@
 
 use bevy::{
   prelude::*,
+  diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
 };
 
 use bevy_fake_interior::*;
@@ -9,11 +10,21 @@ use bevy_fake_interior::*;
 fn main() {
   let mut app = App::new();
 
-  app.add_plugins(DefaultPlugins.set(
-    AssetPlugin {
+  app.add_plugins((
+    DefaultPlugins.set(WindowPlugin {
+        primary_window: Some(Window {
+            title: "Simple".into(),
+            ..default()
+        }),
+        ..default()
+    }).set(
+      AssetPlugin {
         mode: AssetMode::Processed,
         ..default()
-    }
+      }
+    ),
+    LogDiagnosticsPlugin::default(),
+    FrameTimeDiagnosticsPlugin,
   ));
 
   app.add_plugins(FakeInteriorMaterialPlugin)
@@ -35,23 +46,74 @@ fn setup(
 ) {
     // circular base
     commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Circle::new(4.0).into()),
-        material: materials.add(Color::WHITE.into()),
+        mesh: meshes.add(shape::Circle::new(4.0)),
+        material: materials.add(Color::WHITE),
         transform: Transform::from_xyz(0.0, -0.5, 1.0)
           .with_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
         ..default()
     });
+    let _interior1 = interiors.add(StandardFakeInteriorMaterial {
+      base: StandardMaterial {
+        base_color_texture: Some(asset_server.load("textures/rooms_depth.png")),
+        emissive: Color::WHITE * 10.0,
+        emissive_texture: Some(asset_server.load("textures/rooms_emit.png")),
+        reflectance: 1.0,
+        ..default()
+      },
+      extension: FakeInteriorMaterial {
+        atlas_rooms: Vec2::new(3.0, 2.0),
+        rooms: Vec2::new(6.0, 6.0),
+        depth: 0.5,
+        room_seed: 1.2,
+        ..default()
+      }
+    });
+    let _test_room = interiors.add(StandardFakeInteriorMaterial {
+      base: StandardMaterial {
+        base_color_texture: Some(asset_server.load("textures/test_room.png")),
+        emissive: Color::WHITE * 10.0,
+        emissive_texture: Some(asset_server.load("textures/test_room_E.png")),
+        reflectance: 1.0,
+        ..default()
+      },
+      extension: FakeInteriorMaterial {
+        atlas_rooms: Vec2::new(1.0, 1.0),
+        rooms: Vec2::new(6.0, 6.0),
+        depth: 0.5,
+        room_seed: 1.2,
+        ..default()
+      }
+    });
+    let interior2 = interiors.add(StandardFakeInteriorMaterial {
+      base: StandardMaterial {
+        base_color_texture: Some(asset_server.load("textures/room_3.png")),
+        emissive: Color::WHITE * 10.0,
+        emissive_texture: Some(asset_server.load("textures/room_3_E.png")),
+        reflectance: 1.0,
+        ..default()
+      },
+      extension: FakeInteriorMaterial {
+        atlas_rooms: Vec2::new(1.0, 1.0),
+        rooms: Vec2::new(6.0, 6.0),
+        depth: 0.5,
+        room_seed: 1.4,
+        ..default()
+      }
+    });
+    let cube = meshes.add(Mesh::from(shape::Cube { size: 1.0 }).with_generated_tangents().unwrap());
     // back cube
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::rgb_u8(124, 144, 255).into()),
+    commands.spawn(MaterialMeshBundle {
+        mesh: cube.clone(),
+        material: materials.add(Color::rgb_u8(124, 144, 255)),
+        //material: interior1.clone(),
         transform: Transform::from_xyz(-1.0, 0.0, -1.0),
         ..default()
     });
     // front cube
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::rgb_u8(124, 144, 255).into()),
+    commands.spawn(MaterialMeshBundle {
+        mesh: cube.clone(),
+        material: materials.add(Color::rgb_u8(124, 144, 255)),
+        //material: interior2.clone(),
         transform: Transform::from_xyz(1.0, 0.0, 0.8),
         ..default()
     });
@@ -66,57 +128,26 @@ fn setup(
         ..default()
     });
 
-    let mut mesh = Mesh::from(shape::Plane { size: 1.0, subdivisions: 0 });
-    mesh.generate_tangents().unwrap();
-    let mesh = meshes.add(mesh);
+    let mesh = meshes.add(Mesh::from(shape::Plane { size: 1.0, subdivisions: 0 })
+      .with_generated_tangents().unwrap());
     // wall 1
     let mut wall = commands.spawn(MaterialMeshBundle {
         mesh: mesh.clone(),
         transform: Transform::from_xyz(-1.0, 0.0, 0.0)
           .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: interiors.add(StandardFakeInteriorMaterial {
-          base: StandardMaterial {
-            base_color_texture: Some(asset_server.load("textures/rooms_depth.png")),
-            emissive: Color::WHITE,
-            emissive_texture: Some(asset_server.load("textures/rooms_emit.png")),
-            reflectance: 1.0,
-            ..default()
-          },
-          extension: FakeInteriorMaterial {
-            atlas_rooms: Vec2::new(3.0, 2.0),
-            rooms: Vec2::new(4.0, 6.0),
-            depth: 0.5,
-            room_seed: 1.2,
-            ..default()
-          }
-        }),
+        material: _test_room,
         ..default()
     });
-    wall.insert(Name::new("Wall Atlas"));
+    wall.insert(Name::new("Wall 1"));
     // wall 2
     let mut wall = commands.spawn(MaterialMeshBundle {
         mesh: mesh.clone(),
         transform: Transform::from_xyz(0.0, 0.0, 0.0)
           .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: interiors.add(StandardFakeInteriorMaterial {
-          base: StandardMaterial {
-            base_color_texture: Some(asset_server.load("textures/room_3.png")),
-            emissive: Color::WHITE,
-            emissive_texture: Some(asset_server.load("textures/room_3_E.png")),
-            reflectance: 1.0,
-            ..default()
-          },
-          extension: FakeInteriorMaterial {
-            atlas_rooms: Vec2::new(1.0, 1.0),
-            rooms: Vec2::new(4.0, 6.0),
-            depth: 0.5,
-            room_seed: 1.4,
-            ..default()
-          }
-        }),
+        material: interior2,
         ..default()
     });
-    wall.insert(Name::new("Wall"));
+    wall.insert(Name::new("Wall 2"));
 
     // camera
     let mut cam = commands.spawn((Camera3dBundle {
@@ -137,8 +168,8 @@ fn setup(
     cam.insert(bevy_panorbit_camera::PanOrbitCamera {
         focus: Vec3::new(0.0, 0.0, 0.0),
         radius: Some(5.0),
-        alpha: Some(0.00),
-        beta: Some(0.0),
+        yaw: Some(0.00),
+        pitch: Some(0.0),
         ..default()
       },
     );
