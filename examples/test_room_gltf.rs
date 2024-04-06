@@ -121,8 +121,6 @@ fn setup_room(
           metallic: 0.,
           metallic_roughness_texture: Some(asset_server.load("polyhaven.com/plastered_wall/textures/plastered_wall_arm_1k.jpg")),
           //depth_map: Some(asset_server.load("polyhaven.com/plastered_wall/textures/plastered_wall_disp_1k.jpg")),
-          //parallax_depth_scale: 0.09,
-          //max_parallax_layer_count: 32.0,
           ..default()
       });
       // wall back
@@ -215,7 +213,7 @@ fn setup_room(
       // light
       commands.spawn(PointLightBundle {
           point_light: PointLight {
-              intensity: 200.0,
+              intensity: 1000.0,
               shadows_enabled: true,
               ..default()
           },
@@ -234,7 +232,7 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     // light
-    //*
+    /*
     commands
         .spawn((PointLightBundle {
             transform: Transform::from_xyz(0.8, 2.0, -1.1),
@@ -255,7 +253,6 @@ fn setup(
             );
             commands.spawn(PbrBundle { mesh, ..default() });
         });
-    // */
 
     // light
     commands.spawn((PointLightBundle {
@@ -267,10 +264,7 @@ fn setup(
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..default()
     }, Name::new("Light 2")));
-
-    let parallax_depth_scale = TargetDepth::default().0;
-    let max_parallax_layer_count = TargetLayers::default().0.exp2();
-    let parallax_mapping_method = CurrentMethod::default();
+    // */
 
     // circular base
     commands.spawn((PbrBundle {
@@ -281,6 +275,12 @@ fn setup(
         ..default()
     }, Name::new("Ground")));
 
+    let simple_window = materials.add(StandardMaterial {
+        base_color_texture: Some(asset_server.load("textures/window_glass_texture.png")),
+        reflectance: 1.0,
+        alpha_mode: AlphaMode::Blend,
+        ..default()
+      });
     let interior1 = interiors.add(StandardFakeInteriorMaterial {
       base: StandardMaterial {
         base_color_texture: Some(asset_server.load("textures/room_gltf.png")),
@@ -305,35 +305,14 @@ fn setup(
         emissive: Color::WHITE * 10.0,
         emissive_texture: Some(asset_server.load("textures/room_gltf_E.png")),
         normal_map_texture: Some(asset_server.load("textures/room_gltf_normal.png")),
+        reflectance: 1.0,
         ..default()
       },
       extension: FakeInteriorMaterial {
         atlas_rooms: Vec2::new(1.0, 1.0),
         rooms: Vec2::new(1.0, 1.0),
         depth: 0.5,
-        room_seed: 1.4,
-        ..default()
-      }
-    });
-    let interior_p = interiors.add(StandardFakeInteriorMaterial {
-      base: StandardMaterial {
-        base_color_texture: Some(asset_server.load("textures/room_gltf.png")),
-        emissive: Color::WHITE * 10.0,
-        emissive_texture: Some(asset_server.load("textures/room_gltf_E.png")),
-        normal_map_texture: Some(asset_server.load("textures/room_gltf_normal.png")),
-        // The depth map is a greyscale texture where black is the highest level and
-        // white the lowest.
-        depth_map: Some(asset_server.load("textures/room_gltf_depth.png")),
-        parallax_depth_scale,
-        parallax_mapping_method: parallax_mapping_method.0,
-        max_parallax_layer_count,
-        ..default()
-      },
-      extension: FakeInteriorMaterial {
-        atlas_rooms: Vec2::new(1.0, 1.0),
-        rooms: Vec2::new(1.0, 1.0),
-        depth: 0.5,
-        room_seed: 1.4,
+        room_seed: 1.2,
         ..default()
       }
     });
@@ -354,7 +333,7 @@ fn setup(
         mesh: mesh.clone(),
         transform: Transform::from_xyz(0.0, 0.0, 0.0)
           .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: interior_n,
+        material: interior_n.clone(),
         ..default()
     });
     wall.insert(Name::new("Wall 2"));
@@ -363,10 +342,48 @@ fn setup(
         mesh: mesh.clone(),
         transform: Transform::from_xyz(1.1, 0.0, 0.0)
           .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: interior_p,
+        material: interior_n,
         ..default()
     });
     wall.insert(Name::new("Wall 3"));
+    //*
+    // window 1
+    let mut window = commands.spawn(MaterialMeshBundle {
+        mesh: mesh.clone(),
+        transform: Transform::from_xyz(-1.1, 0.0, 0.001)
+          .with_rotation(Quat::from_rotation_x(1.570796)),
+        material: simple_window.clone(),
+        ..default()
+    });
+    window.insert(Name::new("Window 1"));
+    // window 2
+    let mut window = commands.spawn(MaterialMeshBundle {
+        mesh: mesh.clone(),
+        transform: Transform::from_xyz(0.0, 0.0, 0.001)
+          .with_rotation(Quat::from_rotation_x(1.570796)),
+        material: simple_window.clone(),
+        ..default()
+    });
+    window.insert(Name::new("Window 2"));
+    // window 3
+    let mut window = commands.spawn(MaterialMeshBundle {
+        mesh: mesh.clone(),
+        transform: Transform::from_xyz(1.1, 0.0, 0.001)
+          .with_rotation(Quat::from_rotation_x(1.570796)),
+        material: simple_window.clone(),
+        ..default()
+    });
+    window.insert(Name::new("Window 3"));
+    // window 4
+    let mut window = commands.spawn(MaterialMeshBundle {
+        mesh: mesh.clone(),
+        transform: Transform::from_xyz(2.1, 0.0, 0.001)
+          .with_rotation(Quat::from_rotation_x(1.570796)),
+        material: simple_window,
+        ..default()
+    });
+    window.insert(Name::new("Window 4"));
+    // */
 
     // camera
     let mut cam = commands.spawn(Camera3dBundle {
