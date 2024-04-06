@@ -11,6 +11,7 @@ homepage = "https://github.com/Neopallium/bevy_fake_interior"
 
 exclude = [
 	"examples/*",
+	"assets/polyhaven.com/*",
 	"assets/textures/*",
 ]
 
