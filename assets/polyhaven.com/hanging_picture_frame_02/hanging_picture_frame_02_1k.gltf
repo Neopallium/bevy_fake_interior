@@ -1,0 +1,341 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v1.6.16",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "hanging_picture_frame_02"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "hanging_picture_frame_02_artwork",
+      "normalTexture": {
+        "index": 0
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicFactor": 0,
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "hanging_picture_frame_02",
+      "normalTexture": {
+        "index": 3
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 4
+        },
+        "metallicRoughnessTexture": {
+          "index": 5
+        }
+      }
+    },
+    {
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "name": "hanging_picture_frame_02_glass",
+      "normalTexture": {
+        "index": 6
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 7
+        },
+        "metallicRoughnessTexture": {
+          "index": 8
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Cube.009",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        },
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 1
+        },
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 3,
+          "material": 2
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    },
+    {
+      "sampler": 0,
+      "source": 3
+    },
+    {
+      "sampler": 0,
+      "source": 4
+    },
+    {
+      "sampler": 0,
+      "source": 5
+    },
+    {
+      "sampler": 0,
+      "source": 3
+    },
+    {
+      "sampler": 0,
+      "source": 4
+    },
+    {
+      "sampler": 0,
+      "source": 5
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/jpeg",
+      "name": "hanging_picture_frame_02_artwork_nor_gl.png",
+      "uri": "textures/hanging_picture_frame_02_artwork_nor_gl_1k.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "name": "hanging_picture_frame_02_artwork_diff.png",
+      "uri": "textures/hanging_picture_frame_02_artwork_diff_1k.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "name": "hanging_picture_frame_02_artwork_roughness",
+      "uri": "textures/hanging_picture_frame_02_artwork_roughness_1k.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "name": "hanging_picture_frame_02_nor_gl",
+      "uri": "textures/hanging_picture_frame_02_nor_gl_1k.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "name": "hanging_picture_frame_02_diff",
+      "uri": "textures/hanging_picture_frame_02_diff_1k.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "name": "hanging_picture_frame_02_metallic-hanging_picture_frame_02_roughness",
+      "uri": "textures/hanging_picture_frame_02_arm_1k.jpg"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        0.30354297161102295,
+        0.1456594318151474,
+        0.009396607056260109
+      ],
+      "min": [
+        -0.3005182445049286,
+        -0.2083541750907898,
+        0.009396420791745186
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 6,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 2899,
+      "max": [
+        0.3762068748474121,
+        0.22135353088378906,
+        0.035109858959913254
+      ],
+      "min": [
+        -0.37560656666755676,
+        -0.27864643931388855,
+        0.0020347151439636946
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 2899,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 2899,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 11022,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        0.3000468909740448,
+        0.1468544453382492,
+        0.010662279091775417
+      ],
+      "min": [
+        -0.30122387409210205,
+        -0.2041473686695099,
+        0.01066209003329277
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC2"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 0
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 48
+    },
+    {
+      "buffer": 0,
+      "byteLength": 32,
+      "byteOffset": 96
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12,
+      "byteOffset": 128
+    },
+    {
+      "buffer": 0,
+      "byteLength": 34788,
+      "byteOffset": 140
+    },
+    {
+      "buffer": 0,
+      "byteLength": 34788,
+      "byteOffset": 34928
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23192,
+      "byteOffset": 69716
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22044,
+      "byteOffset": 92908
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 114952
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 115000
+    },
+    {
+      "buffer": 0,
+      "byteLength": 32,
+      "byteOffset": 115048
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 115080,
+      "uri": "hanging_picture_frame_02.bin"
+    }
+  ]
+}

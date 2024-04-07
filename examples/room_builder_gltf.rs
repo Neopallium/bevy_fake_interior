@@ -229,24 +229,69 @@ fn setup_room(
       }, Name::new("Arm chair")));
       commands.spawn((SceneBundle {
           scene: asset_server.load("polyhaven.com/modern_wooden_cabinet/modern_wooden_cabinet_1k.gltf#Scene0"),
-          transform: Transform::from_translation(Vec3::new(4.4, -5.0, 0.9))
+          transform: Transform::from_translation(Vec3::new(4.7, -5.0, 0.9))
             .with_rotation(Quat::from_rotation_y(-90.0_f32.to_radians()))
-            .with_scale(Vec3::new(2.5, 2.5, 2.5)),
+            .with_scale(Vec3::new(2.5, 1.6, 1.1)),
           ..default()
       }, Name::new("Wooden cabinet")));
       commands.spawn((SceneBundle {
           scene: asset_server.load("polyhaven.com/modern_coffee_table/modern_coffee_table_01_1k.gltf#Scene0"),
-          transform: Transform::from_translation(Vec3::new(-4.3, -5.0, 1.9))
-            //.with_rotation(Quat::from_rotation_y(1.5))
-            .with_scale(Vec3::new(2.5, 2.5, 2.5)),
+          transform: Transform::from_translation(Vec3::new(-1.4, -5.0, 1.9))
+            .with_scale(Vec3::new(2.5, 1.6, 2.5)),
           ..default()
       }, Name::new("Coffee table")));
+
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/modern_ceiling_lamp/modern_ceiling_lamp_01_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(0.0, 3.47, 0.0))
+            .with_scale(Vec3::new(2.5, 1.3, 2.5)),
+          ..default()
+      }, Name::new("Modern ceiling lamp")));
+
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/hanging_picture_frame_01/hanging_picture_frame_01_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(-5.0, 0.8, 1.9))
+            .with_rotation(Quat::from_rotation_y(90.0_f32.to_radians()))
+            .with_scale(Vec3::new(4.0, 4.0, 4.0)),
+          ..default()
+      }, Name::new("Hanging picture frame 01")));
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(5.0, 0.5, 1.9))
+            .with_rotation(Quat::from_rotation_y(-90.0_f32.to_radians()))
+            .with_scale(Vec3::new(4.0, 4.0, 4.0)),
+          ..default()
+      }, Name::new("Hanging picture frame 02")));
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/fancy_picture_frame/fancy_picture_frame_01_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(2.6, 2.0, -4.9))
+            .with_scale(Vec3::new(4.5, 4.8, 4.5)),
+          ..default()
+      }, Name::new("Fancy picture frame 01")));
+
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/dartboard/dartboard_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(-0.6, 0.7, -5.0))
+            .with_scale(Vec3::new(3.0, 3.0, 3.0)),
+          ..default()
+      }, Name::new("Dartboard")));
+
       commands.spawn((SceneBundle {
           scene: asset_server.load("polyhaven.com/wooden_bookshelf_worn/wooden_bookshelf_worn_1k.gltf#Scene0"),
           transform: Transform::from_translation(Vec3::new(2.8, -5.0, -4.8))
             .with_scale(Vec3::new(2.5, 2.5, 2.5)),
           ..default()
-      }, Name::new("Bookshelf")));
+      }, Name::new("Bookshelf")))
+      .with_children(|commands| {
+        let books = asset_server.load("polyhaven.com/book_encyclopedia_set/book_encyclopedia_set_01_1k.gltf#Scene0");
+        commands.spawn((SceneBundle {
+            scene: books.clone(),
+            transform: Transform::from_translation(Vec3::new(-0.54, 1.65, 0.1))
+              //.with_rotation(Quat::from_rotation_y(1.5))
+              .with_scale(Vec3::new(2.1, 1.4, 1.0)),
+            ..default()
+        }, Name::new("Encyclopedia set")));
+      });
 
       // light
       commands.spawn(PointLightBundle {
@@ -255,7 +300,7 @@ fn setup_room(
               shadows_enabled: true,
               ..default()
           },
-          transform: Transform::from_xyz(0.0, (ROOM_SIZE.y/2.0) - 0.3, 0.0),
+          transform: Transform::from_xyz(0.0, 3.47, 0.0),
           ..default()
       });
     });
