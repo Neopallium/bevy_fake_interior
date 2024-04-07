@@ -21,11 +21,13 @@ fn fragment(
     let sample_index = 0u;
 #endif
     if settings.show_depth == 1u {
-        let depth = 1.0 - (bevy_pbr::prepass_utils::prepass_depth(mesh.position, sample_index) * 100.0);
+        var depth = bevy_pbr::prepass_utils::prepass_depth(mesh.position, sample_index);
+        depth = 1.0 - (depth * 100.0);
+        //depth = (depth * 10.0);
         return vec4(depth, depth, depth, 1.0);
     } else if settings.show_normals == 1u {
         var normal = bevy_pbr::prepass_utils::prepass_normal(mesh.position, sample_index);
-        normal = normalize(normal + vec3(0.5, 0.5, 0.5));
+        normal = (normal * 0.5) + 0.5;
         return vec4(normal, 1.0);
     }
 

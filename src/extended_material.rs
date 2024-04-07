@@ -20,7 +20,7 @@ pub struct MaterialExtensionPipeline {
     pub fragment_shader: Option<Handle<Shader>>,
 }
 
-pub struct MaterialExtensionKey<E: AsBindGroup> {
+pub struct MaterialExtensionKey<E: MaterialExtension> {
     pub mesh_key: MeshPipelineKey,
     pub bind_group_data: E::Data,
 }
@@ -163,6 +163,22 @@ impl<B: Material + FromReflect, E: MaterialExtension + FromReflect> Material for
         }
     }
 
+    fn alpha_mode(&self) -> AlphaMode {
+        B::alpha_mode(&self.base)
+    }
+
+    fn opaque_render_method(&self) -> OpaqueRendererMethod {
+        B::opaque_render_method(&self.base)
+    }
+
+    fn depth_bias(&self) -> f32 {
+        B::depth_bias(&self.base)
+    }
+
+    fn reads_view_transmission_texture(&self) -> bool {
+        B::reads_view_transmission_texture(&self.base)
+    }
+
     fn prepass_vertex_shader() -> ShaderRef {
         match E::prepass_vertex_shader() {
             ShaderRef::Default => B::prepass_vertex_shader(),
@@ -189,22 +205,6 @@ impl<B: Material + FromReflect, E: MaterialExtension + FromReflect> Material for
             ShaderRef::Default => B::deferred_fragment_shader(),
             specified => specified,
         }
-    }
-
-    fn alpha_mode(&self) -> AlphaMode {
-        B::alpha_mode(&self.base)
-    }
-
-    fn depth_bias(&self) -> f32 {
-        B::depth_bias(&self.base)
-    }
-
-    fn reads_view_transmission_texture(&self) -> bool {
-        B::reads_view_transmission_texture(&self.base)
-    }
-
-    fn opaque_render_method(&self) -> OpaqueRendererMethod {
-        B::opaque_render_method(&self.base)
     }
 
     fn specialize(
