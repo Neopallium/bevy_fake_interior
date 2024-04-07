@@ -14,12 +14,12 @@ use bevy::{
 
 use bevy_fake_interior::*;
 
-const ROOM_SIZE: Vec3 = Vec3::new(4., 4., 4.);
-const WALL_BACK: Vec3 = Vec3::new(0., 0., -2.);
-const WALL_LEFT: Vec3 = Vec3::new(-2., 0., 0.);
-const WALL_RIGHT: Vec3 = Vec3::new(2., 0., 0.);
-const WALL_FLOOR: Vec3 = Vec3::new(0., -2., 0.);
-const WALL_CEILING: Vec3 = Vec3::new(0., 2., 0.);
+const ROOM_SIZE: Vec3 = Vec3::new(10., 10., 10.);
+const WALL_BACK: Vec3 = Vec3::new(0., 0., -5.);
+const WALL_LEFT: Vec3 = Vec3::new(-5., 0., 0.);
+const WALL_RIGHT: Vec3 = Vec3::new(5., 0., 0.);
+const WALL_FLOOR: Vec3 = Vec3::new(0., -5., 0.);
+const WALL_CEILING: Vec3 = Vec3::new(0., 5., 0.);
 const WALL_THICKNESS: f32 = 0.01;
 
 fn main() {
@@ -59,7 +59,7 @@ fn main() {
   
   app.insert_resource(PointLightShadowMap { size: 4096 });
 
-  app.add_systems(Startup, setup)
+  app.add_systems(Startup, (setup, setup_room))
     .add_systems(
         Update,
         (
@@ -131,6 +131,137 @@ fn screenshot_on_spacebar(
 }
 
 /// set up a simple 3D scene
+fn setup_room(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
+  // top-level room entity.
+  commands
+    .spawn((SpatialBundle {
+      transform: Transform::from_xyz(0., 0., 0.),
+      ..default()
+    }, Name::new("Room")))
+    .with_children(|commands| {
+      // Dirty carpet.
+      let carpet_material = materials.add(StandardMaterial {
+          base_color_texture: Some(asset_server.load("polyhaven.com/dirty_carpet/textures/dirty_carpet_diff_1k.jpg")),
+          normal_map_texture: Some(asset_server.load("polyhaven.com/dirty_carpet/textures/dirty_carpet_nor_gl_1k.jpg")),
+          metallic: 0.,
+          metallic_roughness_texture: Some(asset_server.load("polyhaven.com/dirty_carpet/textures/dirty_carpet_arm_1k.jpg")),
+          ..default()
+      });
+      // Plaster carpet.
+      let plaster_material = materials.add(StandardMaterial {
+          base_color_texture: Some(asset_server.load("polyhaven.com/plastered_wall/textures/plastered_wall_diff_1k.jpg")),
+          normal_map_texture: Some(asset_server.load("polyhaven.com/plastered_wall/textures/plastered_wall_nor_gl_1k.jpg")),
+          metallic: 0.,
+          metallic_roughness_texture: Some(asset_server.load("polyhaven.com/plastered_wall/textures/plastered_wall_arm_1k.jpg")),
+          //depth_map: Some(asset_server.load("polyhaven.com/plastered_wall/textures/plastered_wall_disp_1k.jpg")),
+          ..default()
+      });
+      // wall back
+      let mut mesh = Mesh::from(shape::Box::new(ROOM_SIZE.x, ROOM_SIZE.y, WALL_THICKNESS));
+      mesh.generate_tangents().unwrap();
+      let mesh = meshes.add(mesh);
+      let mut wall = commands.spawn(MaterialMeshBundle {
+          mesh,
+          transform: Transform::from_translation(WALL_BACK),
+          //material: materials.add(Color::BLUE),
+          material: plaster_material.clone(),
+          ..default()
+      });
+      wall.insert(Name::new("Wall back"));
+
+      // wall Left
+      let mut mesh = Mesh::from(shape::Box::new(WALL_THICKNESS, ROOM_SIZE.y, ROOM_SIZE.z));
+      mesh.generate_tangents().unwrap();
+      let mesh = meshes.add(mesh);
+      let mut wall = commands.spawn(MaterialMeshBundle {
+          mesh: mesh.clone(),
+          transform: Transform::from_translation(WALL_LEFT),
+          //material: materials.add(Color::RED),
+          material: plaster_material.clone(),
+          ..default()
+      });
+      wall.insert(Name::new("Wall left"));
+
+      // wall Right
+      let mut wall = commands.spawn(MaterialMeshBundle {
+          mesh,
+          transform: Transform::from_translation(WALL_RIGHT),
+          //material: materials.add(Color::RED),
+          material: plaster_material.clone(),
+          ..default()
+      });
+      wall.insert(Name::new("Wall right"));
+
+      // wall Floor
+      let mut mesh = Mesh::from(shape::Box::new(ROOM_SIZE.x, WALL_THICKNESS, ROOM_SIZE.z));
+      mesh.generate_tangents().unwrap();
+      let mesh = meshes.add(mesh);
+      let mut wall = commands.spawn(MaterialMeshBundle {
+          mesh: mesh.clone(),
+          transform: Transform::from_translation(WALL_FLOOR),
+          material: carpet_material.clone(),
+          ..default()
+      });
+      wall.insert(Name::new("Wall floor"));
+
+      // wall Ceiling
+      let mut wall = commands.spawn(MaterialMeshBundle {
+          mesh,
+          transform: Transform::from_translation(WALL_CEILING),
+          //material: materials.add(Color::GREEN),
+          material: plaster_material.clone(),
+          ..default()
+      });
+      wall.insert(Name::new("Wall ceiling"));
+
+      // GLTF objects.
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/modern_arm_chair/modern_arm_chair_01_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(-3.3, -5.0, -3.0))
+            .with_rotation(Quat::from_rotation_y(0.9))
+            .with_scale(Vec3::new(2.5, 2.5, 2.5)),
+          ..default()
+      }, Name::new("Arm chair")));
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/modern_wooden_cabinet/modern_wooden_cabinet_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(4.4, -5.0, 0.9))
+            .with_rotation(Quat::from_rotation_y(-90.0_f32.to_radians()))
+            .with_scale(Vec3::new(2.5, 2.5, 2.5)),
+          ..default()
+      }, Name::new("Wooden cabinet")));
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/modern_coffee_table/modern_coffee_table_01_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(-4.3, -5.0, 1.9))
+            //.with_rotation(Quat::from_rotation_y(1.5))
+            .with_scale(Vec3::new(2.5, 2.5, 2.5)),
+          ..default()
+      }, Name::new("Coffee table")));
+      commands.spawn((SceneBundle {
+          scene: asset_server.load("polyhaven.com/wooden_bookshelf_worn/wooden_bookshelf_worn_1k.gltf#Scene0"),
+          transform: Transform::from_translation(Vec3::new(2.8, -5.0, -4.8))
+            .with_scale(Vec3::new(2.5, 2.5, 2.5)),
+          ..default()
+      }, Name::new("Bookshelf")));
+
+      // light
+      commands.spawn(PointLightBundle {
+          point_light: PointLight {
+              intensity: 100000.0,
+              shadows_enabled: true,
+              ..default()
+          },
+          transform: Transform::from_xyz(0.0, (ROOM_SIZE.y/2.0) - 0.3, 0.0),
+          ..default()
+      });
+    });
+}
+
+/// set up a simple 3D scene
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -138,6 +269,7 @@ fn setup(
     mut depth_materials: ResMut<Assets<PrepassOutputMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
+  /*
     // Dirty carpet.
     let carpet_material = materials.add(StandardMaterial {
         base_color_texture: Some(asset_server.load("polyhaven.com/dirty_carpet/textures/dirty_carpet_diff_1k.jpg")),
@@ -218,29 +350,29 @@ fn setup(
     // GLTF objects.
     commands.spawn((SceneBundle {
         scene: asset_server.load("polyhaven.com/modern_arm_chair/modern_arm_chair_01_1k.gltf#Scene0"),
-        transform: Transform::from_translation(Vec3::new(-1.3, -2.0, -1.1))
+        transform: Transform::from_translation(Vec3::new(-3.3, -5.0, -3.0))
           .with_rotation(Quat::from_rotation_y(0.9))
-          .with_scale(Vec3::new(1.0, 1.0, 1.0)),
+          .with_scale(Vec3::new(2.5, 2.5, 2.5)),
         ..default()
     }, Name::new("Arm chair")));
     commands.spawn((SceneBundle {
         scene: asset_server.load("polyhaven.com/modern_wooden_cabinet/modern_wooden_cabinet_1k.gltf#Scene0"),
-        transform: Transform::from_translation(Vec3::new(1.7, -2.0, 0.6))
+        transform: Transform::from_translation(Vec3::new(4.4, -5.0, 0.9))
           .with_rotation(Quat::from_rotation_y(-90.0_f32.to_radians()))
-          .with_scale(Vec3::new(1.0, 1.0, 1.0)),
+          .with_scale(Vec3::new(2.5, 2.5, 2.5)),
         ..default()
     }, Name::new("Wooden cabinet")));
     commands.spawn((SceneBundle {
         scene: asset_server.load("polyhaven.com/modern_coffee_table/modern_coffee_table_01_1k.gltf#Scene0"),
-        transform: Transform::from_translation(Vec3::new(-1.6, -2.0, 0.6))
+        transform: Transform::from_translation(Vec3::new(-4.3, -5.0, 1.9))
           //.with_rotation(Quat::from_rotation_y(1.5))
-          .with_scale(Vec3::new(1.0, 1.0, 1.0)),
+          .with_scale(Vec3::new(2.5, 2.5, 2.5)),
         ..default()
     }, Name::new("Coffee table")));
     commands.spawn((SceneBundle {
         scene: asset_server.load("polyhaven.com/wooden_bookshelf_worn/wooden_bookshelf_worn_1k.gltf#Scene0"),
-        transform: Transform::from_translation(Vec3::new(0.8, -2.0, -1.8))
-          .with_scale(Vec3::new(1.0, 1.0, 1.0)),
+        transform: Transform::from_translation(Vec3::new(2.8, -5.0, -4.8))
+          .with_scale(Vec3::new(2.5, 2.5, 2.5)),
         ..default()
     }, Name::new("Bookshelf")));
 
@@ -254,10 +386,11 @@ fn setup(
         transform: Transform::from_xyz(0.0, (ROOM_SIZE.y/2.0) - 0.3, 0.0),
         ..default()
     });
+    */
 
     // camera
     let mut cam = commands.spawn(Camera3dBundle {
-      transform: Transform::from_xyz(0.0, 0.0, 6.0),
+      transform: Transform::from_xyz(0.0, 0.0, 10.0),
       projection: Projection::Perspective(PerspectiveProjection {
         fov: 53.13_f32.to_radians(),
         ..default()
@@ -274,7 +407,7 @@ fn setup(
     //*
     cam.insert(bevy_panorbit_camera::PanOrbitCamera {
         focus: Vec3::new(0.0, 0.0, 0.0),
-        radius: Some(6.0),
+        radius: Some(15.0),
         yaw: Some(0.00),
         pitch: Some(0.0),
         ..default()
@@ -293,7 +426,7 @@ fn setup(
             material: depth_materials.add(PrepassOutputMaterial {
                 settings: ShowPrepassSettings::default(),
             }),
-            transform: Transform::from_xyz(0., 0., 2.0),
+            transform: Transform::from_xyz(0., 0., 5.0),
             ..default()
         },
         NotShadowCaster,
