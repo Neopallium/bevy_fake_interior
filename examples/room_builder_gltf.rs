@@ -1,7 +1,7 @@
 //! Room texture builder.
 
 use bevy::{
-  prelude::*, window::close_on_esc,
+  prelude::*,
   diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
   window::PrimaryWindow,
   render::view::screenshot::ScreenshotManager,
@@ -10,6 +10,7 @@ use bevy::{
   pbr::{NotShadowCaster, PointLightShadowMap},
   reflect::TypePath,
   render::render_resource::{AsBindGroup, ShaderRef, ShaderType},
+  render::mesh::*,
 };
 
 use bevy_fake_interior::*;
@@ -63,13 +64,19 @@ fn main() {
     .add_systems(
         Update,
         (
-            close_on_esc,
+            handle_quit,
             toggle_prepass_view.run_if(common_conditions::input_just_pressed(KeyCode::KeyP)),
             screenshot_on_spacebar.run_if(common_conditions::input_just_pressed(KeyCode::Space)),
         ),
     );
 
   app.run();
+}
+
+fn handle_quit(input: Res<ButtonInput<KeyCode>>, mut exit: EventWriter<AppExit>) {
+  if input.pressed(KeyCode::KeyQ) {
+    exit.send(AppExit::Success);
+  }
 }
 
 #[derive(Debug, Clone, Default, ShaderType)]
@@ -162,7 +169,7 @@ fn setup_room(
           ..default()
       });
       // wall back
-      let mut mesh = Mesh::from(shape::Box::new(ROOM_SIZE.x, ROOM_SIZE.y, WALL_THICKNESS));
+      let mut mesh = Mesh::from(Cuboid::new(ROOM_SIZE.x, ROOM_SIZE.y, WALL_THICKNESS));
       mesh.generate_tangents().unwrap();
       let mesh = meshes.add(mesh);
       let mut wall = commands.spawn(MaterialMeshBundle {
@@ -175,7 +182,7 @@ fn setup_room(
       wall.insert(Name::new("Wall back"));
 
       // wall Left
-      let mut mesh = Mesh::from(shape::Box::new(WALL_THICKNESS, ROOM_SIZE.y, ROOM_SIZE.z));
+      let mut mesh = Mesh::from(Cuboid::new(WALL_THICKNESS, ROOM_SIZE.y, ROOM_SIZE.z));
       mesh.generate_tangents().unwrap();
       let mesh = meshes.add(mesh);
       let mut wall = commands.spawn(MaterialMeshBundle {
@@ -198,7 +205,7 @@ fn setup_room(
       wall.insert(Name::new("Wall right"));
 
       // wall Floor
-      let mut mesh = Mesh::from(shape::Box::new(ROOM_SIZE.x, WALL_THICKNESS, ROOM_SIZE.z));
+      let mut mesh = Mesh::from(Cuboid::new(ROOM_SIZE.x, WALL_THICKNESS, ROOM_SIZE.z));
       mesh.generate_tangents().unwrap();
       let mesh = meshes.add(mesh);
       let mut wall = commands.spawn(MaterialMeshBundle {
@@ -335,7 +342,7 @@ fn setup(
         ..default()
     });
     // wall back
-    let mut mesh = Mesh::from(shape::Box::new(ROOM_SIZE.x, ROOM_SIZE.y, WALL_THICKNESS));
+    let mut mesh = Mesh::from(Cuboid::new(ROOM_SIZE.x, ROOM_SIZE.y, WALL_THICKNESS));
     mesh.generate_tangents().unwrap();
     let mesh = meshes.add(mesh);
     let mut wall = commands.spawn(MaterialMeshBundle {
@@ -348,7 +355,7 @@ fn setup(
     wall.insert(Name::new("Wall back"));
 
     // wall Left
-    let mut mesh = Mesh::from(shape::Box::new(WALL_THICKNESS, ROOM_SIZE.y, ROOM_SIZE.z));
+    let mut mesh = Mesh::from(Cuboid::new(WALL_THICKNESS, ROOM_SIZE.y, ROOM_SIZE.z));
     mesh.generate_tangents().unwrap();
     let mesh = meshes.add(mesh);
     let mut wall = commands.spawn(MaterialMeshBundle {
@@ -371,7 +378,7 @@ fn setup(
     wall.insert(Name::new("Wall right"));
 
     // wall Floor
-    let mut mesh = Mesh::from(shape::Box::new(ROOM_SIZE.x, WALL_THICKNESS, ROOM_SIZE.z));
+    let mut mesh = Mesh::from(Cuboid::new(ROOM_SIZE.x, WALL_THICKNESS, ROOM_SIZE.z));
     mesh.generate_tangents().unwrap();
     let mesh = meshes.add(mesh);
     let mut wall = commands.spawn(MaterialMeshBundle {
@@ -467,7 +474,7 @@ fn setup(
     // For a real application, this isn't ideal.
     commands.spawn((
         MaterialMeshBundle {
-            mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 20.0))),
+            mesh: meshes.add(Rectangle::new(20.0, 20.0)),
             material: depth_materials.add(PrepassOutputMaterial {
                 settings: ShowPrepassSettings::default(),
             }),

@@ -3,7 +3,7 @@
 use std::fmt;
 
 use bevy::{
-  prelude::*, window::close_on_esc,
+  prelude::*,
   diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
   window::PresentMode,
   pbr::PointLightShadowMap,
@@ -12,6 +12,7 @@ use bevy::{
   pbr::NotShadowCaster,
   reflect::TypePath,
   render::render_resource::{AsBindGroup, ShaderRef, ShaderType},
+  render::mesh::*,
 };
 
 use bevy_fake_interior::*;
@@ -55,12 +56,18 @@ fn main() {
     .add_systems(
         Update,
         (
-            close_on_esc,
+            handle_quit,
             toggle_prepass_view.run_if(common_conditions::input_just_pressed(KeyCode::KeyP)),
         ),
     );
 
   app.run();
+}
+
+fn handle_quit(input: Res<ButtonInput<KeyCode>>, mut exit: EventWriter<AppExit>) {
+  if input.pressed(KeyCode::KeyQ) {
+    exit.send(AppExit::Success);
+  }
 }
 
 #[derive(Debug, Clone, Default, ShaderType)]
@@ -131,7 +138,7 @@ fn setup(
 
     // circular base
     commands.spawn((PbrBundle {
-        mesh: meshes.add(shape::Circle::new(4.0)),
+        mesh: meshes.add(Circle::new(4.0)),
         material: materials.add(Color::WHITE),
         transform: Transform::from_xyz(0.0, -5.0, 0.0)
           .with_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2))
@@ -148,7 +155,7 @@ fn setup(
     let room_01 = interiors.add(StandardFakeInteriorMaterial {
       base: StandardMaterial {
         base_color_texture: Some(asset_server.load("textures/room_gltf.png")),
-        emissive: Color::WHITE * 15.0,
+        emissive: LinearRgba::WHITE * 15.0,
         emissive_texture: Some(asset_server.load("textures/room_gltf_E.png")),
         reflectance: 0.2,
         normal_map_texture: Some(asset_server.load("textures/room_gltf_normal.png")),
@@ -167,7 +174,7 @@ fn setup(
     let room_02 = interiors.add(StandardFakeInteriorMaterial {
       base: StandardMaterial {
         base_color_texture: Some(asset_server.load("textures/room_gltf_02.png")),
-        emissive: Color::WHITE * 15.0,
+        emissive: LinearRgba::WHITE * 15.0,
         emissive_texture: Some(asset_server.load("textures/room_gltf_02_E.png")),
         reflectance: 0.2,
         normal_map_texture: Some(asset_server.load("textures/room_gltf_02_normal.png")),
@@ -186,7 +193,7 @@ fn setup(
     let room_03 = interiors.add(StandardFakeInteriorMaterial {
       base: StandardMaterial {
         base_color_texture: Some(asset_server.load("textures/room_gltf_02.png")),
-        emissive: Color::WHITE * 15.0,
+        emissive: LinearRgba::WHITE * 15.0,
         emissive_texture: Some(asset_server.load("textures/room_gltf_02_E.png")),
         reflectance: 0.2,
         //normal_map_texture: Some(asset_server.load("textures/room_gltf_02_normal.png")),
@@ -203,7 +210,7 @@ fn setup(
       }
     });
 
-    let mesh = meshes.add(Mesh::from(shape::Plane { size: 10.0, subdivisions: 0 })
+    let mesh = meshes.add(PlaneMeshBuilder::from_length(10.0).subdivisions(0).build()
       .with_generated_tangents().unwrap());
     // wall 1
     let mut wall = commands.spawn(MaterialMeshBundle {
@@ -305,7 +312,7 @@ fn setup(
       // For a real application, this isn't ideal.
       commands.spawn((
           MaterialMeshBundle {
-              mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 20.0))),
+              mesh: meshes.add(Rectangle::new(20.0, 20.0)),
               material: depth_materials.add(PrepassOutputMaterial {
                   settings: ShowPrepassSettings::default(),
               }),

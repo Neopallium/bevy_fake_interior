@@ -1,7 +1,7 @@
 //! Room texture builder.
 
 use bevy::{
-  prelude::*, window::close_on_esc,
+  prelude::*,
   diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
   window::PrimaryWindow,
   render::view::screenshot::ScreenshotManager,
@@ -10,6 +10,7 @@ use bevy::{
   pbr::NotShadowCaster,
   reflect::TypePath,
   render::render_resource::{AsBindGroup, ShaderRef, ShaderType},
+  color::palettes::css,
 };
 
 use bevy_fake_interior::*;
@@ -60,13 +61,19 @@ fn main() {
     .add_systems(
         Update,
         (
-            close_on_esc,
+            handle_quit,
             toggle_prepass_view.run_if(common_conditions::input_just_pressed(KeyCode::KeyP)),
             screenshot_on_spacebar.run_if(common_conditions::input_just_pressed(KeyCode::Space)),
         ),
     );
 
   app.run();
+}
+
+fn handle_quit(input: Res<ButtonInput<KeyCode>>, mut exit: EventWriter<AppExit>) {
+  if input.pressed(KeyCode::KeyQ) {
+    exit.send(AppExit::Success);
+  }
 }
 
 #[derive(Debug, Clone, Default, ShaderType)]
@@ -135,21 +142,21 @@ fn setup(
     mut depth_materials: ResMut<Assets<PrepassOutputMaterial>>,
 ) {
     // wall back
-    let mut mesh = Mesh::from(shape::Box::new(ROOM_SIZE.x, ROOM_SIZE.y, WALL_THICKNESS));
+    let mut mesh = Mesh::from(Cuboid::new(ROOM_SIZE.x, ROOM_SIZE.y, WALL_THICKNESS));
     mesh.generate_tangents().unwrap();
     let mesh = meshes.add(mesh);
     let mut wall = commands.spawn(MaterialMeshBundle {
         mesh,
         transform: Transform::from_translation(WALL_BACK),
-        material: materials.add(Color::BLUE),
+        material: materials.add(Color::from(css::BLUE)),
         ..default()
     });
     wall.insert(Name::new("Wall back"));
 
     // back wall door.
     commands.spawn((PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::SILVER),
+        mesh: meshes.add(Cuboid::from_length(1.0)),
+        material: materials.add(Color::from(css::SILVER)),
         transform: Transform::from_translation(Vec3::new(-0.8, -1.5, -5.0))
           .with_scale(Vec3::new(3.0, 7.0, 0.5)),
         ..default()
@@ -157,8 +164,8 @@ fn setup(
 
     // back wall left corner table
     commands.spawn((PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::GOLD),
+        mesh: meshes.add(Cuboid::from_length(1.0)),
+        material: materials.add(Color::from(css::GOLD)),
         transform: Transform::from_translation(Vec3::new(-3.9, -4.0, -3.2))
           .with_scale(Vec3::new(1.7, 1.7, 1.8)),
         ..default()
@@ -166,8 +173,8 @@ fn setup(
 
     // back wall bookcase
     commands.spawn((PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::OLIVE),
+        mesh: meshes.add(Cuboid::from_length(1.0)),
+        material: materials.add(Color::from(css::OLIVE)),
         transform: Transform::from_translation(Vec3::new(2.7, -3.0, -4.3))
           .with_scale(Vec3::new(3.1, 4.2, 2.0)),
         ..default()
@@ -175,16 +182,16 @@ fn setup(
 
     // left side sofa.
     commands.spawn((PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::DARK_GREEN),
+        mesh: meshes.add(Cuboid::from_length(1.0)),
+        material: materials.add(Color::from(css::DARK_GREEN)),
         transform: Transform::from_translation(Vec3::new(-4.0, -4.6, 1.1))
           .with_scale(Vec3::new(1.7, 1.2, 6.0)),
         ..default()
     }, Name::new("Left Sofa")))
       .with_children(|commands| {
         commands.spawn((PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-            material: materials.add(Color::DARK_GREEN),
+            mesh: meshes.add(Cuboid::from_length(1.0)),
+            material: materials.add(Color::from(css::DARK_GREEN)),
             transform: Transform::from_translation(Vec3::new(-0.4, 1.0, 0.0))
               .with_scale(Vec3::new(0.2, 1.0, 1.0)),
             ..default()
@@ -193,7 +200,7 @@ fn setup(
 
     // Coffee table.
     commands.spawn((PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        mesh: meshes.add(Cuboid::from_length(1.0)),
         material: materials.add(Color::WHITE),
         transform: Transform::from_translation(Vec3::new(-1.3, -4.5, 1.1))
           .with_scale(Vec3::new(1.5, 0.8, 5.0)),
@@ -202,7 +209,7 @@ fn setup(
 
     // TV.
     commands.spawn((PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        mesh: meshes.add(Cuboid::from_length(1.0)),
         material: materials.add(Color::BLACK),
         transform: Transform::from_translation(Vec3::new(4.8, -1.5, 1.1))
           .with_scale(Vec3::new(0.2, 3.0, 5.0)),
@@ -210,13 +217,13 @@ fn setup(
     }, Name::new("TV")));
 
     // wall Left
-    let mut mesh = Mesh::from(shape::Box::new(WALL_THICKNESS, ROOM_SIZE.y, ROOM_SIZE.z));
+    let mut mesh = Mesh::from(Cuboid::new(WALL_THICKNESS, ROOM_SIZE.y, ROOM_SIZE.z));
     mesh.generate_tangents().unwrap();
     let mesh = meshes.add(mesh);
     let mut wall = commands.spawn(MaterialMeshBundle {
         mesh: mesh.clone(),
         transform: Transform::from_translation(WALL_LEFT),
-        material: materials.add(Color::RED),
+        material: materials.add(Color::from(css::RED)),
         ..default()
     });
     wall.insert(Name::new("Wall left"));
@@ -225,19 +232,19 @@ fn setup(
     let mut wall = commands.spawn(MaterialMeshBundle {
         mesh,
         transform: Transform::from_translation(WALL_RIGHT),
-        material: materials.add(Color::RED),
+        material: materials.add(Color::from(css::RED)),
         ..default()
     });
     wall.insert(Name::new("Wall right"));
 
     // wall Floor
-    let mut mesh = Mesh::from(shape::Box::new(ROOM_SIZE.x, WALL_THICKNESS, ROOM_SIZE.z));
+    let mut mesh = Mesh::from(Cuboid::new(ROOM_SIZE.x, WALL_THICKNESS, ROOM_SIZE.z));
     mesh.generate_tangents().unwrap();
     let mesh = meshes.add(mesh);
     let mut wall = commands.spawn(MaterialMeshBundle {
         mesh: mesh.clone(),
         transform: Transform::from_translation(WALL_FLOOR),
-        material: materials.add(Color::GREEN),
+        material: materials.add(Color::from(css::GREEN)),
         ..default()
     });
     wall.insert(Name::new("Wall floor"));
@@ -246,7 +253,7 @@ fn setup(
     let mut wall = commands.spawn(MaterialMeshBundle {
         mesh,
         transform: Transform::from_translation(WALL_CEILING),
-        material: materials.add(Color::GREEN),
+        material: materials.add(Color::from(css::GREEN)),
         ..default()
     });
     wall.insert(Name::new("Wall ceiling"));
@@ -295,7 +302,7 @@ fn setup(
     // For a real application, this isn't ideal.
     commands.spawn((
         MaterialMeshBundle {
-            mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 20.0))),
+            mesh: meshes.add(Rectangle::new(20.0, 20.0)),
             material: depth_materials.add(PrepassOutputMaterial {
                 settings: ShowPrepassSettings::default(),
             }),

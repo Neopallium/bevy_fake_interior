@@ -2,6 +2,7 @@
 
 use bevy::{
   prelude::*,
+  render::mesh::*,
   diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
 };
 
@@ -46,7 +47,7 @@ fn setup(
 ) {
     // circular base
     commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Circle::new(4.0)),
+        mesh: meshes.add(Circle::new(4.0)),
         material: materials.add(Color::WHITE),
         transform: Transform::from_xyz(0.0, -0.5, 1.0)
           .with_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
@@ -55,7 +56,7 @@ fn setup(
     let _interior1 = interiors.add(StandardFakeInteriorMaterial {
       base: StandardMaterial {
         base_color_texture: Some(asset_server.load("textures/rooms_depth.png")),
-        emissive: Color::WHITE * 10.0,
+        emissive: LinearRgba::WHITE * 10.0,
         emissive_texture: Some(asset_server.load("textures/rooms_emit.png")),
         reflectance: 1.0,
         ..default()
@@ -71,7 +72,7 @@ fn setup(
     let _test_room = interiors.add(StandardFakeInteriorMaterial {
       base: StandardMaterial {
         base_color_texture: Some(asset_server.load("textures/test_room.png")),
-        emissive: Color::WHITE * 10.0,
+        emissive: LinearRgba::WHITE * 10.0,
         emissive_texture: Some(asset_server.load("textures/test_room_E.png")),
         reflectance: 1.0,
         ..default()
@@ -87,7 +88,7 @@ fn setup(
     let interior2 = interiors.add(StandardFakeInteriorMaterial {
       base: StandardMaterial {
         base_color_texture: Some(asset_server.load("textures/room_3.png")),
-        emissive: Color::WHITE * 10.0,
+        emissive: LinearRgba::WHITE * 10.0,
         emissive_texture: Some(asset_server.load("textures/room_3_E.png")),
         reflectance: 1.0,
         ..default()
@@ -100,11 +101,11 @@ fn setup(
         ..default()
       }
     });
-    let cube = meshes.add(Mesh::from(shape::Cube { size: 1.0 }).with_generated_tangents().unwrap());
+    let cube = meshes.add(Mesh::from(Cuboid::from_length(1.0)).with_generated_tangents().unwrap());
     // back cube
     commands.spawn(MaterialMeshBundle {
         mesh: cube.clone(),
-        material: materials.add(Color::rgb_u8(124, 144, 255)),
+        material: materials.add(Color::srgb_u8(124, 144, 255)),
         //material: interior1.clone(),
         transform: Transform::from_xyz(-1.0, 0.0, -1.0),
         ..default()
@@ -112,7 +113,7 @@ fn setup(
     // front cube
     commands.spawn(MaterialMeshBundle {
         mesh: cube.clone(),
-        material: materials.add(Color::rgb_u8(124, 144, 255)),
+        material: materials.add(Color::srgb_u8(124, 144, 255)),
         //material: interior2.clone(),
         transform: Transform::from_xyz(1.0, 0.0, 0.8),
         ..default()
@@ -128,7 +129,7 @@ fn setup(
         ..default()
     });
 
-    let mesh = meshes.add(Mesh::from(shape::Plane { size: 1.0, subdivisions: 0 })
+    let mesh = meshes.add(PlaneMeshBuilder::from_length(1.0).subdivisions(0).build()
       .with_generated_tangents().unwrap());
     // wall 1
     let mut wall = commands.spawn(MaterialMeshBundle {
@@ -155,7 +156,7 @@ fn setup(
         .looking_at(Vec3::new(0., 0., 0.), Vec3::Y),
       ..default()
     },FogSettings {
-        color: Color::rgba(0.25, 0.25, 0.25, 1.0),
+        color: Color::srgba(0.25, 0.25, 0.25, 1.0),
         falloff: FogFalloff::Linear {
             start: 5.0,
             end: 20.0,

@@ -3,11 +3,9 @@
 use bevy::{
   prelude::*,
   reflect::Reflect,
-  render::{render_asset::*, render_resource::*},
+  render::{render_asset::*, render_resource::*, texture::GpuImage},
+  pbr::{ExtendedMaterial, MaterialExtension},
 };
-
-mod extended_material;
-use extended_material::*;
 
 pub type StandardFakeInteriorMaterial = ExtendedMaterial<StandardMaterial, FakeInteriorMaterial>;
 
@@ -47,7 +45,7 @@ pub struct FakeInteriorMaterialUniform {
 }
 
 impl AsBindGroupShaderType<FakeInteriorMaterialUniform> for FakeInteriorMaterial {
-  fn as_bind_group_shader_type(&self, _images: &RenderAssets<Image>) -> FakeInteriorMaterialUniform {
+  fn as_bind_group_shader_type(&self, _images: &RenderAssets<GpuImage>) -> FakeInteriorMaterialUniform {
     FakeInteriorMaterialUniform {
       atlas_rooms: self.atlas_rooms,
       rooms: self.rooms,
@@ -61,10 +59,6 @@ impl AsBindGroupShaderType<FakeInteriorMaterialUniform> for FakeInteriorMaterial
 
 impl MaterialExtension for FakeInteriorMaterial {
   fn fragment_shader() -> ShaderRef {
-    "shaders/fake_interior.wgsl".into()
-  }
-
-  fn deferred_fragment_shader() -> ShaderRef {
     "shaders/fake_interior.wgsl".into()
   }
 }
