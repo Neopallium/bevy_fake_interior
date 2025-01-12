@@ -1,59 +1,52 @@
 //! A shader and a material that uses it.
 
-use std::fmt;
-
 use bevy::{
-  prelude::*,
-  diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-  window::PresentMode,
-  pbr::PointLightShadowMap,
-  input::common_conditions,
-  core_pipeline::prepass::{DepthPrepass, NormalPrepass},
-  pbr::NotShadowCaster,
-  reflect::TypePath,
-  render::render_resource::{AsBindGroup, ShaderRef, ShaderType},
-  render::mesh::*,
+    core_pipeline::prepass::{DepthPrepass, NormalPrepass},
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    input::common_conditions,
+    pbr::NotShadowCaster,
+    pbr::PointLightShadowMap,
+    prelude::*,
+    reflect::TypePath,
+    render::mesh::*,
+    render::render_resource::{AsBindGroup, ShaderRef, ShaderType},
 };
 
 use bevy_fake_interior::*;
 
 fn main() {
-  let mut app = App::new();
+    let mut app = App::new();
 
-  app.add_plugins((
-    DefaultPlugins.set(WindowPlugin {
-        primary_window: Some(Window {
-            title: "Test rooms".into(),
-            //present_mode: PresentMode::AutoNoVsync,
-            ..default()
-        }),
+    app.add_plugins((
+        DefaultPlugins
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Test rooms".into(),
+                    //present_mode: PresentMode::AutoNoVsync,
+                    ..default()
+                }),
+                ..default()
+            })
+            .set(AssetPlugin {
+                mode: AssetMode::Processed,
+                ..default()
+            }),
+        LogDiagnosticsPlugin::default(),
+        FrameTimeDiagnosticsPlugin,
+    ));
+
+    app.add_plugins(MaterialPlugin::<PrepassOutputMaterial> {
+        // This material only needs to read the prepass textures,
+        // but the meshes using it should not contribute to the prepass render, so we can disable it.
+        prepass_enabled: false,
         ..default()
-    }).set(
-      AssetPlugin {
-        mode: AssetMode::Processed,
-        ..default()
-      }
-    ),
-    LogDiagnosticsPlugin::default(),
-    FrameTimeDiagnosticsPlugin,
-  ));
+    });
+    app.add_plugins(FakeInteriorMaterialPlugin)
+        .add_plugins(bevy_inspector_egui::quick::WorldInspectorPlugin::new())
+        .add_plugins(bevy_panorbit_camera::PanOrbitCameraPlugin);
 
-  app.add_plugins(
-      MaterialPlugin::<PrepassOutputMaterial> {
-          // This material only needs to read the prepass textures,
-          // but the meshes using it should not contribute to the prepass render, so we can disable it.
-          prepass_enabled: false,
-          ..default()
-      },
-    );
-  app.add_plugins(FakeInteriorMaterialPlugin)
-    .add_plugins(bevy_inspector_egui::quick::WorldInspectorPlugin::new())
-    .add_plugins(bevy_panorbit_camera::PanOrbitCameraPlugin);
-
-  app.insert_resource(PointLightShadowMap { size: 4096 });
-  app
-    .add_systems(Startup, setup)
-    .add_systems(
+    app.insert_resource(PointLightShadowMap { size: 4096 });
+    app.add_systems(Startup, setup).add_systems(
         Update,
         (
             handle_quit,
@@ -61,13 +54,13 @@ fn main() {
         ),
     );
 
-  app.run();
+    app.run();
 }
 
 fn handle_quit(input: Res<ButtonInput<KeyCode>>, mut exit: EventWriter<AppExit>) {
-  if input.pressed(KeyCode::KeyQ) {
-    exit.send(AppExit::Success);
-  }
+    if input.pressed(KeyCode::KeyQ) {
+        exit.send(AppExit::Success);
+    }
 }
 
 #[derive(Debug, Clone, Default, ShaderType)]
@@ -97,7 +90,7 @@ impl Material for PrepassOutputMaterial {
 /// Every time you press space, it will cycle between transparent, depth and normals view
 fn toggle_prepass_view(
     mut prepass_view: Local<u32>,
-    material_handle: Query<&Handle<PrepassOutputMaterial>>,
+    material_handle: Query<&MeshMaterial3d<PrepassOutputMaterial>>,
     mut materials: ResMut<Assets<PrepassOutputMaterial>>,
 ) {
     *prepass_view = (*prepass_view + 1) % 3;
@@ -126,158 +119,153 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     // light
-    commands.spawn((PointLightBundle {
-        point_light: PointLight {
+    commands.spawn((
+        PointLight {
             intensity: 1000000.0,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(-5.0, 6.0, 6.5),
-        ..default()
-    }, Name::new("Spot Light")));
+        Transform::from_xyz(-5.0, 6.0, 6.5),
+        Name::new("Spot Light"),
+    ));
 
     // circular base
-    commands.spawn((PbrBundle {
-        mesh: meshes.add(Circle::new(4.0)),
-        material: materials.add(Color::WHITE),
-        transform: Transform::from_xyz(0.0, -5.0, 0.0)
-          .with_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2))
-          .with_scale(Vec3::new(8., 8., 8.)),
-        ..default()
-    }, Name::new("Ground")));
+    commands.spawn((
+        Mesh3d(meshes.add(Circle::new(4.0))),
+        MeshMaterial3d(materials.add(Color::WHITE)),
+        Transform::from_xyz(0.0, -5.0, 0.0)
+            .with_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2))
+            .with_scale(Vec3::new(8., 8., 8.)),
+        Name::new("Ground"),
+    ));
 
-    let simple_window = materials.add(StandardMaterial {
+    let _simple_window = materials.add(StandardMaterial {
         base_color_texture: Some(asset_server.load("textures/window_glass_texture.png")),
         reflectance: 1.0,
         alpha_mode: AlphaMode::Blend,
         ..default()
-      });
+    });
     let room_01 = interiors.add(StandardFakeInteriorMaterial {
-      base: StandardMaterial {
-        base_color_texture: Some(asset_server.load("textures/room_gltf.png")),
-        emissive: LinearRgba::WHITE * 15.0,
-        emissive_texture: Some(asset_server.load("textures/room_gltf_E.png")),
-        reflectance: 0.2,
-        normal_map_texture: Some(asset_server.load("textures/room_gltf_normal.png")),
-        //depth_map: Some(asset_server.load("textures/room_gltf_depth.png")),
-        //max_parallax_layer_count: 0.0,
-        ..default()
-      },
-      extension: FakeInteriorMaterial {
-        atlas_rooms: Vec2::new(1.0, 1.0),
-        rooms: Vec2::new(1.0, 1.0),
-        depth: 0.5,
-        room_seed: 1.2,
-        ..default()
-      }
+        base: StandardMaterial {
+            base_color_texture: Some(asset_server.load("textures/room_gltf.png")),
+            emissive: LinearRgba::WHITE * 15.0,
+            emissive_texture: Some(asset_server.load("textures/room_gltf_E.png")),
+            reflectance: 0.2,
+            normal_map_texture: Some(asset_server.load("textures/room_gltf_normal.png")),
+            //depth_map: Some(asset_server.load("textures/room_gltf_depth.png")),
+            //max_parallax_layer_count: 0.0,
+            ..default()
+        },
+        extension: FakeInteriorMaterial {
+            atlas_rooms: Vec2::new(1.0, 1.0),
+            rooms: Vec2::new(1.0, 1.0),
+            depth: 0.5,
+            room_seed: 1.2,
+            ..default()
+        },
     });
     let room_02 = interiors.add(StandardFakeInteriorMaterial {
-      base: StandardMaterial {
-        base_color_texture: Some(asset_server.load("textures/room_gltf_02.png")),
-        emissive: LinearRgba::WHITE * 15.0,
-        emissive_texture: Some(asset_server.load("textures/room_gltf_02_E.png")),
-        reflectance: 0.2,
-        normal_map_texture: Some(asset_server.load("textures/room_gltf_02_normal.png")),
-        //depth_map: Some(asset_server.load("textures/room_gltf_02_depth.png")),
-        //max_parallax_layer_count: 0.0,
-        ..default()
-      },
-      extension: FakeInteriorMaterial {
-        atlas_rooms: Vec2::new(1.0, 1.0),
-        rooms: Vec2::new(1.0, 1.0),
-        depth: 0.5,
-        room_seed: 1.2,
-        ..default()
-      }
+        base: StandardMaterial {
+            base_color_texture: Some(asset_server.load("textures/room_gltf_02.png")),
+            emissive: LinearRgba::WHITE * 15.0,
+            emissive_texture: Some(asset_server.load("textures/room_gltf_02_E.png")),
+            reflectance: 0.2,
+            normal_map_texture: Some(asset_server.load("textures/room_gltf_02_normal.png")),
+            //depth_map: Some(asset_server.load("textures/room_gltf_02_depth.png")),
+            //max_parallax_layer_count: 0.0,
+            ..default()
+        },
+        extension: FakeInteriorMaterial {
+            atlas_rooms: Vec2::new(1.0, 1.0),
+            rooms: Vec2::new(1.0, 1.0),
+            depth: 0.5,
+            room_seed: 1.2,
+            ..default()
+        },
     });
     let room_03 = interiors.add(StandardFakeInteriorMaterial {
-      base: StandardMaterial {
-        base_color_texture: Some(asset_server.load("textures/room_gltf_02.png")),
-        emissive: LinearRgba::WHITE * 15.0,
-        emissive_texture: Some(asset_server.load("textures/room_gltf_02_E.png")),
-        reflectance: 0.2,
-        //normal_map_texture: Some(asset_server.load("textures/room_gltf_02_normal.png")),
-        //depth_map: Some(asset_server.load("textures/room_gltf_02_depth.png")),
-        //max_parallax_layer_count: 0.0,
-        ..default()
-      },
-      extension: FakeInteriorMaterial {
-        atlas_rooms: Vec2::new(1.0, 1.0),
-        rooms: Vec2::new(1.0, 1.0),
-        depth: 0.5,
-        room_seed: 1.2,
-        ..default()
-      }
+        base: StandardMaterial {
+            base_color_texture: Some(asset_server.load("textures/room_gltf_02.png")),
+            emissive: LinearRgba::WHITE * 15.0,
+            emissive_texture: Some(asset_server.load("textures/room_gltf_02_E.png")),
+            reflectance: 0.2,
+            //normal_map_texture: Some(asset_server.load("textures/room_gltf_02_normal.png")),
+            //depth_map: Some(asset_server.load("textures/room_gltf_02_depth.png")),
+            //max_parallax_layer_count: 0.0,
+            ..default()
+        },
+        extension: FakeInteriorMaterial {
+            atlas_rooms: Vec2::new(1.0, 1.0),
+            rooms: Vec2::new(1.0, 1.0),
+            depth: 0.5,
+            room_seed: 1.2,
+            ..default()
+        },
     });
 
-    let mesh = meshes.add(PlaneMeshBuilder::from_length(10.0).subdivisions(0).build()
-      .with_generated_tangents().unwrap());
+    let mesh = meshes.add(
+        PlaneMeshBuilder::from_length(10.0)
+            .subdivisions(0)
+            .build()
+            .with_generated_tangents()
+            .unwrap(),
+    );
     // wall 1
-    let mut wall = commands.spawn(MaterialMeshBundle {
-        mesh: mesh.clone(),
-        transform: Transform::from_xyz(-20.0, 0.0, 5.0)
-          .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: room_01.clone(),
-        ..default()
-    });
+    let mut wall = commands.spawn((
+        Mesh3d(mesh.clone()),
+        Transform::from_xyz(-20.0, 0.0, 5.0).with_rotation(Quat::from_rotation_x(1.570796)),
+        MeshMaterial3d(room_01.clone()),
+    ));
     wall.insert(Name::new("Room 01"));
     // wall 2
-    let mut wall = commands.spawn(MaterialMeshBundle {
-        mesh: mesh.clone(),
-        transform: Transform::from_xyz(-10.0, 0.0, 5.0)
-          .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: room_02.clone(),
-        ..default()
-    });
+    let mut wall = commands.spawn((
+        Mesh3d(mesh.clone()),
+        Transform::from_xyz(-10.0, 0.0, 5.0).with_rotation(Quat::from_rotation_x(1.570796)),
+        MeshMaterial3d(room_02.clone()),
+    ));
     wall.insert(Name::new("Room 02"));
     // wall 3
-    let mut wall = commands.spawn(MaterialMeshBundle {
-        mesh: mesh.clone(),
-        transform: Transform::from_xyz(0.0, 0.0, 5.0)
-          .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: room_03.clone(),
-        ..default()
-    });
+    let mut wall = commands.spawn((
+        Mesh3d(mesh.clone()),
+        Transform::from_xyz(0.0, 0.0, 5.0).with_rotation(Quat::from_rotation_x(1.570796)),
+        MeshMaterial3d(room_03.clone()),
+    ));
     wall.insert(Name::new("Room 03"));
     /*
     // window 1
-    let mut window = commands.spawn(MaterialMeshBundle {
-        mesh: mesh.clone(),
-        transform: Transform::from_xyz(-20., 0.0, 5.001)
+    let mut window = commands.spawn((
+        Mesh3d(mesh.clone()),
+        Transform::from_xyz(-20., 0.0, 5.001)
           .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: simple_window.clone(),
-        ..default()
-    });
+        MeshMaterial3d(simple_window.clone()),
+    ));
     window.insert(Name::new("Window 1"));
     // window 2
-    let mut window = commands.spawn(MaterialMeshBundle {
-        mesh: mesh.clone(),
-        transform: Transform::from_xyz(-10., 0.0, 5.001)
+    let mut window = commands.spawn((
+        Mesh3d(mesh.clone()),
+        Transform::from_xyz(-10., 0.0, 5.001)
           .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: simple_window.clone(),
-        ..default()
-    });
+        MeshMaterial3d(simple_window.clone()),
+    ));
     window.insert(Name::new("Window 2"));
     // window 3
-    let mut window = commands.spawn(MaterialMeshBundle {
-        mesh: mesh.clone(),
-        transform: Transform::from_xyz(0., 0.0, 5.001)
+    let mut window = commands.spawn((
+        Mesh3d(mesh.clone()),
+        Transform::from_xyz(0., 0.0, 5.001)
           .with_rotation(Quat::from_rotation_x(1.570796)),
-        material: simple_window.clone(),
-        ..default()
-    });
+        MeshMaterial3d(simple_window.clone()),
+    ));
     window.insert(Name::new("Window 3"));
     // */
 
     // camera
-    let mut cam = commands.spawn(Camera3dBundle {
-      transform: Transform::from_xyz(5.0, 0.0, 0.0)
-        .looking_at(Vec3::new(0., 0., 0.), Vec3::Y),
-      ..default()
-    });
+    let mut cam = commands.spawn((
+        Camera3d::default(),
+        Transform::from_xyz(5.0, 0.0, 0.0).looking_at(Vec3::new(0., 0., 0.), Vec3::Y),
+    ));
 
     /*
-    cam.insert(FogSettings {
+    cam.insert(DistanceFog {
         color: Color::rgba(0.25, 0.25, 0.25, 1.0),
         falloff: FogFalloff::Linear {
             start: 5.0,
@@ -294,8 +282,7 @@ fn setup(
         yaw: Some(0.00),
         pitch: Some(0.0),
         ..default()
-      },
-    );
+    });
     // */
     cam.insert((
         // To enable the prepass you need to add the components associated with the ones you need
@@ -307,19 +294,16 @@ fn setup(
     cam.insert(Name::new("Camera"));
 
     cam.with_children(|commands| {
-      // A quad that shows the outputs of the prepass
-      // To make it easy, we just draw a big quad right in front of the camera.
-      // For a real application, this isn't ideal.
-      commands.spawn((
-          MaterialMeshBundle {
-              mesh: meshes.add(Rectangle::new(20.0, 20.0)),
-              material: depth_materials.add(PrepassOutputMaterial {
-                  settings: ShowPrepassSettings::default(),
-              }),
-              transform: Transform::from_xyz(0., 0., -0.5),
-              ..default()
-          },
-          NotShadowCaster,
-      ));
+        // A quad that shows the outputs of the prepass
+        // To make it easy, we just draw a big quad right in front of the camera.
+        // For a real application, this isn't ideal.
+        commands.spawn((
+            Mesh3d(meshes.add(Rectangle::new(20.0, 20.0))),
+            MeshMaterial3d(depth_materials.add(PrepassOutputMaterial {
+                settings: ShowPrepassSettings::default(),
+            })),
+            Transform::from_xyz(0., 0., -0.5),
+            NotShadowCaster,
+        ));
     });
 }

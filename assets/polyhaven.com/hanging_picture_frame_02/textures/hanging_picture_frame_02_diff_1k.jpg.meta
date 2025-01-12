@@ -1,12 +1,16 @@
 (
     meta_format_version: "1.0",
-    asset: Load(
-        loader: "bevy_render::texture::image_loader::ImageLoader",
+    asset: Process(
+        processor: "bevy_asset::processor::process::LoadTransformAndSave<bevy_image::image_loader::ImageLoader, bevy_asset::transformer::IdentityAssetTransformer<bevy_image::image::Image>, bevy_image::compressed_image_saver::CompressedImageSaver>",
         settings: (
-            format: FromExtension,
-            is_srgb: true,
-            sampler: Default,
-            asset_usage: ("MAIN_WORLD | RENDER_WORLD"),
+            loader_settings: (
+                format: FromExtension,
+                is_srgb: false,
+                sampler: Default,
+                asset_usage: ("MAIN_WORLD | RENDER_WORLD"),
+            ),
+            transformer_settings: (),
+            saver_settings: (),
         ),
     ),
 )
